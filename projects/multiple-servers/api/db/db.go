@@ -3,13 +3,13 @@ package db
 import (
 	"fmt"
 	"context"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
 	"strconv"
 	"servers/api/models"
 )
 
-func InitializeDB() (*pgx.Conn, error) {
+func InitializeDB() (*pgxpool.Pool, error) {
 		var (
 		 dbHost      = os.Getenv("DATABASE_HOST")
 		 dbPortStr   = os.Getenv("DATABASE_PORT")
@@ -32,21 +32,21 @@ func InitializeDB() (*pgx.Conn, error) {
 
 		 connStr := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
 
-		 conn, err := pgx.Connect(context.Background(), connStr)
+		 pool, err := pgxpool.New(context.Background(), connStr)
 
 		 if err != nil {
 			 err := fmt.Errorf("err: Unable to connect to the db.. %v", err)
 			 return nil, err
 		 }
 
-		 return conn, nil   
+		 return pool, nil   
 } 
 
 
-func GetAllImages(conn *pgx.Conn) ([]models.Image, error) {
+func GetAllImages(cxt context.Context, conn *pgxpool.Pool) ([]models.Image, error) {
 	var images []models.Image
 
-	rows, err := conn.Query(context.Background(), "SELECT title, alt_text, url FROM public.images;")
+	rows, err := conn.Query(cxt, "SELECT title, alt_text, url FROM public.images;")
 
 	if err != nil {
 		return nil, err
@@ -66,8 +66,8 @@ func GetAllImages(conn *pgx.Conn) ([]models.Image, error) {
 	return images, nil
 }
 
-func UploadImage(conn *pgx.Conn, image models.Image) error {
-	cmdTag, err := conn.Exec(context.Background(), "INSERT INTO public.images(title, url, alt_text) VALUES($1, $2, $3);", image.Title, image.URL, image.AltText)
+func UploadImage(cxt context.Context, conn *pgxpool.Pool, image models.Image) error {
+	cmdTag, err := conn.Exec(cxt, "INSERT INTO public.images(title, url, alt_text) VALUES($1, $2, $3);", image.Title, image.URL, image.AltText)
   if err != nil {
 		return err 
 	}

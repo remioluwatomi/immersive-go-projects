@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"servers/api/handlers"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func ApiRouter(conn *pgx.Conn) *http.ServeMux {
+func ApiRouter(conn *pgxpool.Pool) *http.ServeMux {
 	mux := http.NewServeMux()
 
   imageHandler := handlers.CreateImageHandler(conn)

@@ -10,7 +10,6 @@ import (
 	"servers/api/db"
 	"servers/api/router"
 	"strconv"
-	"context"
 	"strings"
 )
 
@@ -52,13 +51,14 @@ func enableCorsMiddleware(next http.Handler) http.Handler {
 
 func Run() {
 	flag.Parse()
+	
 	conn, err := db.InitializeDB()
   
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error: ", err)
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close()
   
   mux := router.ApiRouter(conn)
 	handler := enableCorsMiddleware(mux)

@@ -4,40 +4,43 @@ import (
 	"net/http"
   "servers/api/models"
 	"servers/api/db"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"servers/api/utls"
 	"fmt"
 	"os"
 	"io"
 	"encoding/json"
+	"context"
 )
 
 type ImageHandler struct {
-	Conn *pgx.Conn
+	Conn *pgxpool.Pool
 }
 
-func CreateImageHandler(conn *pgx.Conn) *ImageHandler{
+func CreateImageHandler(conn *pgxpool.Pool) *ImageHandler {
 	return &ImageHandler{Conn: conn}
 }
 
 func (i *ImageHandler) HandleImages(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
+	conn := i.Conn
+	cxt := r.Context()
+	switch r.Method {	
     case http.MethodGet:
-			getAllImages(i.Conn, w, r)
+			getAllImages(cxt, conn, w, r)
 			break
 			
 		case http.MethodPost:
-			postImage(i.Conn, w, r)
+			postImage(cxt, conn, w, r)
 			break 
     
 		case http.MethodOptions:
-			fmt.Println("cors request sent")
+			// code to handle cors pre-flight..
 			break 
 		}
 }
 
-func getAllImages(conn *pgx.Conn, w http.ResponseWriter, r *http.Request) {
-	imgs, err := db.GetAllImages(conn)
+func getAllImages(cxt context.Context, conn *pgxpool.Pool, w http.ResponseWriter, r *http.Request) {
+	imgs, err := db.GetAllImages(cxt, conn)
 
   if err != nil {
 		fmt.Fprintln(os.Stderr,"error fetching images from the db: \n", err)
@@ -57,7 +60,7 @@ func postImageErrResWrapper(err error, customErrorMessage string, w http.Respons
 	utls.JSONError(w, errJson, statusCode, responseIndent)
 }
 
-func postImage(conn *pgx.Conn, w http.ResponseWriter, r *http.Request) {
+func postImage(cxt context.Context, conn *pgxpool.Pool, w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 
@@ -74,7 +77,7 @@ func postImage(conn *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 		 return
 	} 
 
-	if err := db.UploadImage(conn, image); err != nil {
+	if err := db.UploadImage(cxt, conn, image); err != nil {
 		postImageErrResWrapper(err, "Upload failed. ", w, 4, http.StatusInternalServerError, indent)
 		 return
 	}
