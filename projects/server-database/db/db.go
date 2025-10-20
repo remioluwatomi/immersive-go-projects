@@ -47,6 +47,7 @@ func FetchImages(conn *pgx.Conn) ([]types.Image, error) {
 	 var images []types.Image
 		
 		rows, err :=  conn.Query(context.Background(), "SELECT title, url, alt_text FROM public.images")
+		defer rows.Close()
 
 		if err != nil {
 			return nil, fmt.Errorf("Error fetching images from the db.. \n err: %v", err)
@@ -58,7 +59,7 @@ func FetchImages(conn *pgx.Conn) ([]types.Image, error) {
       
 			 images = append(images, types.Image{Title: title, AltText: altText, URL: url})
 		}
-
+    
 		return images, nil
 }
 
