@@ -29,7 +29,7 @@ func main() {
 		w.Write([]byte("pong"))
 	})
 
-	log.Println("server running on port ", serverPort)
+	log.Println("server is running on port ", serverPort)
 
 	http.ListenAndServe(fmt.Sprintf(":%s", strconv.Itoa(serverPort)), nil)
 
