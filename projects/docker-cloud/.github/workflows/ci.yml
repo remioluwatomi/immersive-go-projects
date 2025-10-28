@@ -43,5 +43,5 @@ jobs:
 
       # Output the image URI
       - name: Image details
-        run: echo "Pushed image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        run: echo "Pushed image: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
 
