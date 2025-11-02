@@ -33,7 +33,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }} 
         run: |
           IMAGE_URI=$REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker build -t $IMAGE_URI .
+          docker build -t $IMAGE_URI ./../../projects/docker-cloud/
           docker push $IMAGE_URI
 
       - name: Image details
