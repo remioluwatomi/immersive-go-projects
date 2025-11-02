@@ -26,7 +26,7 @@ func main() {
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request){
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("pong"))
+		w.Write([]byte("Hello!"))
 	})
 
 	log.Println("server is running on port ", serverPort)
