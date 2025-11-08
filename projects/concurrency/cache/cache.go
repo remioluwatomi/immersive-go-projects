@@ -17,11 +17,17 @@ func createLinkedDummyNodes[K comparable, V any]() (*Node[K, V], *Node[K, V]) {
 	return head, tail
 }
 
+type CacheLevelStat struct {
+	reads  int
+	writes int
+}
+
 type Cache[K comparable, V any] struct {
 	cacheMap map[K]*Node[K, V]
 	Limit    int
 	head     *Node[K, V]
 	tail     *Node[K, V]
+	stats    CacheLevelStat
 }
 
 func (c *Cache[K, V]) unlinkNode(n *Node[K, V]) {
@@ -44,8 +50,20 @@ func (c *Cache[K, V]) moveExistingNodeToTail(n *Node[K, V]) {
 	c.addNode(n)
 }
 
+func (c *Cache[K, V]) incrementCacheStatReadOrWrite(statType string) {
+	switch statType {
+	case "READ":
+		c.stats.reads++
+		return
+	case "WRITE":
+		c.stats.writes++
+		return
+	}
+}
+
 func (c *Cache[K, V]) Put(key K, val V) {
 	node, ok := c.cacheMap[key]
+	defer c.incrementCacheStatReadOrWrite("WRITE")
 
 	if ok {
 		node.val = val
@@ -70,6 +88,7 @@ func (c *Cache[K, V]) Put(key K, val V) {
 
 func (c *Cache[K, V]) Get(key K) (V, bool) {
 	node, ok := c.cacheMap[key]
+	defer c.incrementCacheStatReadOrWrite("READ")
 
 	if !ok {
 		var val V
@@ -92,5 +111,6 @@ func NewCache[K comparable, V any](limit int) *Cache[K, V] {
 		Limit:    limit,
 		head:     head,
 		tail:     tail,
+		stats:    CacheLevelStat{},
 	}
 }
