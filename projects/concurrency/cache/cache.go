@@ -17,9 +17,9 @@ func createLinkedDummyNodes[K comparable, V any]() (*Node[K, V], *Node[K, V]) {
 	return head, tail
 }
 
-type CacheLevelStat struct {
-	reads  int
-	writes int
+type CacheLevelStats struct {
+	Reads  int
+	Writes int
 }
 
 type Cache[K comparable, V any] struct {
@@ -27,7 +27,7 @@ type Cache[K comparable, V any] struct {
 	Limit    int
 	head     *Node[K, V]
 	tail     *Node[K, V]
-	stats    CacheLevelStat
+	stats    CacheLevelStats
 }
 
 func (c *Cache[K, V]) unlinkNode(n *Node[K, V]) {
@@ -53,10 +53,10 @@ func (c *Cache[K, V]) moveExistingNodeToTail(n *Node[K, V]) {
 func (c *Cache[K, V]) incrementCacheStatReadOrWrite(statType string) {
 	switch statType {
 	case "READ":
-		c.stats.reads++
+		c.stats.Reads++
 		return
 	case "WRITE":
-		c.stats.writes++
+		c.stats.Writes++
 		return
 	}
 }
@@ -99,6 +99,19 @@ func (c *Cache[K, V]) Get(key K) (V, bool) {
 	return node.val, true
 }
 
+type CacheStats struct {
+	CacheLevelStats CacheLevelStats
+}
+
+func (c *Cache[K, V]) GetStats() CacheStats {
+	return CacheStats{
+		CacheLevelStats: CacheLevelStats{
+			Reads:  c.stats.Reads,
+			Writes: c.stats.Writes,
+		},
+	}
+}
+
 func NewCache[K comparable, V any](limit int) *Cache[K, V] {
 	if limit < 1 {
 		panic("cache limit must be at least 1")
@@ -111,6 +124,6 @@ func NewCache[K comparable, V any](limit int) *Cache[K, V] {
 		Limit:    limit,
 		head:     head,
 		tail:     tail,
-		stats:    CacheLevelStat{},
+		stats:    CacheLevelStats{},
 	}
 }
