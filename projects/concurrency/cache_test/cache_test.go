@@ -86,3 +86,23 @@ func TestGetRefreshesItem(t *testing.T) {
 		t.Error("Expected 'a' to still be in cache")
 	}
 }
+
+// this test case also acounts for evicted key, hence the second
+// cache.Get("a")
+func TestReadCount(t *testing.T) {
+	cache_ := cache.NewCache[string, int](2)
+	cache_.Put("a", 1)
+	cache_.Put("b", 2)
+	cache_.Get("a")
+
+	cache_.Put("c", 3)
+	cache_.Get("b")
+	cache_.Get("c")
+	cache_.Get("a")
+
+	stats := cache_.GetStats()
+	readCounts := stats.CacheLevelStats.Reads
+	if readCounts != 4 {
+		t.Errorf("expected 4 total reads, got %d", readCounts)
+	}
+}
