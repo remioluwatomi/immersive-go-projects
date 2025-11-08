@@ -106,3 +106,16 @@ func TestReadCount(t *testing.T) {
 		t.Errorf("expected 4 total reads, got %d", readCounts)
 	}
 }
+
+func TestPutCount(t *testing.T) {
+	cache_ := cache.NewCache[string, int](4)
+	cache_.Put("a", 1)
+	cache_.Put("b", 2)
+	cache_.Put("c", 3)
+
+	stats := cache_.GetStats()
+	writeCounts := stats.CacheLevelStats.Writes
+	if writeCounts != 3 {
+		t.Errorf("expected 3 total writes, got %d", writeCounts)
+	}
+}
