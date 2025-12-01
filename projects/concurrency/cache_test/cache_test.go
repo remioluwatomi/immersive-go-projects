@@ -13,8 +13,10 @@ func TestNewCache(t *testing.T) {
 		t.Fatal("error: got a nil cache")
 	}
 
-	if cache_.Limit != 5 {
-		t.Errorf("Expected cache limit to 15, got %d", cache_.Limit)
+	cacheLimit := cache_.GetLimit()
+
+	if cacheLimit != 5 {
+		t.Errorf("Expected cache limit to 15, got %d", cacheLimit)
 	}
 }
 
@@ -117,5 +119,48 @@ func TestPutCount(t *testing.T) {
 	writeCounts := stats.CacheLevelStats.Writes
 	if writeCounts != 3 {
 		t.Errorf("expected 3 total writes, got %d", writeCounts)
+	}
+}
+
+func TestHitRate(t *testing.T) {
+	cache_ := cache.NewCache[int, string](3)
+	cache_.Put(1, "z")
+	cache_.Put(2, "y")
+	cache_.Put(3, "x")
+
+	cache_.Get(1)
+	cache_.Get(2)
+	cache_.Get(3)
+
+	cache_.Get(4)
+	cache_.Get(5)
+	cache_.Get(6)
+
+	stats := cache_.GetStats()
+	hitRate := stats.CacheLevelStats.HitRate
+
+	if hitRate != 0.5 {
+		t.Errorf("expected hit rate value of 0.5, got %f", hitRate)
+	}
+}
+
+func TestAverageReads(t *testing.T) {
+	cache_ := cache.NewCache[int, string](2)
+	cache_.Put(1, "z")
+	cache_.Put(2, "y")
+	cache_.Put(3, "x")
+
+	cache_.Get(1)
+	cache_.Get(2)
+	cache_.Get(3)
+	cache_.Get(4)
+	cache_.Get(5)
+	cache_.Get(2)
+
+	stats := cache_.GetStats()
+	avgReads := stats.CacheLevelStats.AverageReads
+
+	if avgReads != 1.5 {
+		t.Errorf("expected avg reads of 1.5, got %f", avgReads)
 	}
 }
