@@ -9,13 +9,17 @@ service Prober {
   rpc DoProbes (ProbeRequest) returns (ProbeReply) {}
 }
 
-// The request message 
+// The request message
 message ProbeRequest {
   string endpoint = 1;
+  int32 request_count = 2;
 }
 
 // The response message containing the result
 message ProbeReply {
-  float latency_msecs = 1;
+  float average_resp_msecs = 1;
+  bool error_state = 2;
+  string error_message = 3;
 }
+
 
